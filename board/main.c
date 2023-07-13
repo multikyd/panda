@@ -147,6 +147,7 @@ void __attribute__ ((noinline)) enable_fpu(void) {
 // called at 8Hz
 uint8_t loop_counter = 0U;
 uint8_t previous_harness_status = HARNESS_STATUS_NC;
+uint8_t device_reset_count = 0;
 uint32_t waiting_to_boot_count = 0;
 bool waiting_to_boot = false;
 void tick_handler(void) {
@@ -200,16 +201,22 @@ void tick_handler(void) {
         waiting_to_boot = true;
       }
       if (waiting_to_boot) {
+        const uint32_t no_boot_threshold = 10U;
         if (som_running) {
           log("device booted");
           waiting_to_boot = false;
-        } else if (waiting_to_boot_count == 10U) {
+          waiting_to_boot_count = 0;
+        } else if (waiting_to_boot_count == no_boot_threshold) {
           log("not booted after 10s");
+          device_reset_count = 3;
+          waiting_to_boot_count = 0;
         } else {
 
         }
         waiting_to_boot_count += 1U;
       }
+      set_gpio_output(GPIOC, 12, (device_reset_count == 0U));
+      if (device_reset_count > 0U) device_reset_count -= 1U;
 
       // increase heartbeat counter and cap it at the uint32 limit
       if (heartbeat_counter < __UINT32_MAX__) {
