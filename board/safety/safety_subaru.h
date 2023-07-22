@@ -78,6 +78,11 @@ const CanMsg SUBARU_LKAS_ANGLE_TX_MSGS[] = {
 };
 #define SUBARU_LKAS_ANGLE_TX_MSGS_LEN (sizeof(SUBARU_LKAS_ANGLE_TX_MSGS) / sizeof(SUBARU_LKAS_ANGLE_TX_MSGS[0]))
 
+const CanMsg SUBARU_LKAS_ANGLE_GEN2_TX_MSGS[] = {
+  SUBARU_COMMON_TX_MSGS(SUBARU_ALT_BUS, MSG_SUBARU_ES_LKAS_ANGLE)
+};
+#define SUBARU_LKAS_ANGLE_GEN2_TX_MSGS_LEN (sizeof(SUBARU_LKAS_ANGLE_GEN2_TX_MSGS) / sizeof(SUBARU_LKAS_ANGLE_GEN2_TX_MSGS[0]))
+
 AddrCheckStruct subaru_addr_checks[] = {
   SUBARU_COMMON_ADDR_CHECKS(SUBARU_MAIN_BUS)
   SUBARU_GEN12_ADDR_CHECKS(SUBARU_MAIN_BUS)
@@ -135,7 +140,8 @@ static int subaru_rx_hook(CANPacket_t *to_push) {
 
   if (valid) {
     const int bus = GET_BUS(to_push);
-    const int alt_bus = subaru_gen2 ? SUBARU_ALT_BUS : SUBARU_MAIN_BUS;
+    const int alt_main_bus = subaru_gen2 ? SUBARU_ALT_BUS : SUBARU_MAIN_BUS;
+    const int alt_cam_bus = subaru_gen2 ? SUBARU_ALT_BUS : SUBARU_CAM_BUS;
     const int stock_ecu = lkas_angle ? MSG_SUBARU_ES_LKAS_ANGLE : MSG_SUBARU_ES_LKAS;
 
     int addr = GET_ADDR(to_push);
@@ -150,18 +156,18 @@ static int subaru_rx_hook(CANPacket_t *to_push) {
     }
 
     // enter controls on rising edge of ACC, exit controls on ACC off
-    if ((addr == MSG_SUBARU_CruiseControl) && (bus == alt_bus) && !es_status) {
+    if ((addr == MSG_SUBARU_CruiseControl) && (bus == alt_main_bus) && !es_status) {
       bool cruise_engaged = GET_BIT(to_push, 41U) != 0U;
       pcm_cruise_check(cruise_engaged);
     }
 
-    if ((addr == MSG_SUBARU_ES_Status) && (bus == SUBARU_CAM_BUS) && es_status) {
+    if ((addr == MSG_SUBARU_ES_Status) && (bus == alt_cam_bus) && es_status) {
       bool cruise_engaged = GET_BIT(to_push, 29U) != 0U;
       pcm_cruise_check(cruise_engaged);
     }
 
     // update vehicle moving with any non-zero wheel speed
-    if ((addr == MSG_SUBARU_Wheel_Speeds) && (bus == alt_bus)) {
+    if ((addr == MSG_SUBARU_Wheel_Speeds) && (bus == alt_main_bus)) {
       uint32_t fr = (GET_BYTES(to_push, 1, 3) >> 4) & 0x1FFFU;
       uint32_t rr = (GET_BYTES(to_push, 3, 3) >> 1) & 0x1FFFU;
       uint32_t rl = (GET_BYTES(to_push, 4, 3) >> 6) & 0x1FFFU;
@@ -173,7 +179,7 @@ static int subaru_rx_hook(CANPacket_t *to_push) {
       update_sample(&vehicle_speed, ROUND(speed * VEHICLE_SPEED_FACTOR));
     }
 
-    if ((addr == MSG_SUBARU_Brake_Status) && (bus == alt_bus)) {
+    if ((addr == MSG_SUBARU_Brake_Status) && (bus == alt_main_bus)) {
       brake_pressed = ((GET_BYTE(to_push, 7) >> 6) & 1U);
     }
 
@@ -191,12 +197,21 @@ static int subaru_tx_hook(CANPacket_t *to_send) {
   int tx = 1;
   int addr = GET_ADDR(to_send);
 
-  if (subaru_gen2) {
-    tx = msg_allowed(to_send, SUBARU_GEN2_TX_MSGS, SUBARU_GEN2_TX_MSGS_LEN);
-  } else if (lkas_angle) {
-    tx = msg_allowed(to_send, SUBARU_LKAS_ANGLE_TX_MSGS, SUBARU_LKAS_ANGLE_TX_MSGS_LEN);
-  } else {
-    tx = msg_allowed(to_send, SUBARU_TX_MSGS, SUBARU_TX_MSGS_LEN);
+  if(lkas_angle) {
+    if(subaru_gen2){
+      tx = msg_allowed(to_send, SUBARU_LKAS_ANGLE_GEN2_TX_MSGS, SUBARU_LKAS_ANGLE_GEN2_TX_MSGS_LEN);
+    }
+    else{
+      tx = msg_allowed(to_send, SUBARU_LKAS_ANGLE_TX_MSGS, SUBARU_LKAS_ANGLE_TX_MSGS_LEN);
+    }
+  }
+  else{
+    if(subaru_gen2){
+      tx = msg_allowed(to_send, SUBARU_GEN2_TX_MSGS, SUBARU_GEN2_TX_MSGS_LEN);
+    }
+    else{
+      tx = msg_allowed(to_send, SUBARU_TX_MSGS, SUBARU_TX_MSGS_LEN);
+    }
   }
 
   // steer cmd checks

@@ -53,7 +53,8 @@ class TestSubaruSafetyBase(common.PandaSafetyTest):
   DRIVER_TORQUE_ALLOWANCE = 60
   DRIVER_TORQUE_FACTOR = 50
 
-  ALT_BUS = SUBARU_MAIN_BUS
+  ALT_MAIN_BUS = SUBARU_MAIN_BUS
+  ALT_CAM_BUS = SUBARU_CAM_BUS
 
   VEHICLE_SPEED_PRECISION = 3
 
@@ -74,11 +75,11 @@ class TestSubaruSafetyBase(common.PandaSafetyTest):
 
   def _speed_msg(self, speed):
     values = {s: speed for s in ["FR", "FL", "RR", "RL"]}
-    return self.packer.make_can_msg_panda("Wheel_Speeds", self.ALT_BUS, values)
+    return self.packer.make_can_msg_panda("Wheel_Speeds", self.ALT_MAIN_BUS, values)
 
   def _user_brake_msg(self, brake):
     values = {"Brake": brake}
-    return self.packer.make_can_msg_panda("Brake_Status", self.ALT_BUS, values)
+    return self.packer.make_can_msg_panda("Brake_Status", self.ALT_MAIN_BUS, values)
 
   def _user_gas_msg(self, gas):
     values = {"Throttle_Pedal": gas}
@@ -86,7 +87,7 @@ class TestSubaruSafetyBase(common.PandaSafetyTest):
 
   def _pcm_status_msg(self, enable):
     values = {"Cruise_Activated": enable}
-    return self.packer.make_can_msg_panda("CruiseControl", self.ALT_BUS, values)
+    return self.packer.make_can_msg_panda("CruiseControl", self.ALT_MAIN_BUS, values)
 
 
 class TestSubaruTorqueSafetyBase(TestSubaruSafetyBase, common.DriverTorqueSteeringSafetyTest):
@@ -95,18 +96,19 @@ class TestSubaruTorqueSafetyBase(TestSubaruSafetyBase, common.DriverTorqueSteeri
     return self.packer.make_can_msg_panda("ES_LKAS", 0, values)
 
 
-class TestSubaruGen2SafetyBase(TestSubaruTorqueSafetyBase):
-  ALT_BUS = SUBARU_ALT_BUS
-
-  MAX_RATE_UP = 40
-  MAX_RATE_DOWN = 40
-  MAX_TORQUE = 1000
 
 class TestSubaruGen1Safety(TestSubaruTorqueSafetyBase):
   FLAGS = 0
   TX_MSGS = lkas_tx_msgs(SUBARU_MAIN_BUS)
 
-class TestSubaruGen2Safety(TestSubaruGen2SafetyBase):
+class TestSubaruGen2Safety(TestSubaruTorqueSafetyBase):
+  ALT_MAIN_BUS = SUBARU_ALT_BUS
+  ALT_CAM_BUS = SUBARU_ALT_BUS
+
+  MAX_RATE_UP = 40
+  MAX_RATE_DOWN = 40
+  MAX_TORQUE = 1000
+
   FLAGS = Panda.FLAG_SUBARU_GEN2
   TX_MSGS = lkas_tx_msgs(SUBARU_ALT_BUS)
 
@@ -120,6 +122,12 @@ class TestSubaruAngleSafetyBase(TestSubaruSafetyBase, common.AngleSteeringSafety
 
   FLAGS = Panda.FLAG_SUBARU_LKAS_ANGLE | Panda.FLAG_SUBARU_ES_STATUS
 
+  ANGLE_RATE_BP = [0]
+  ANGLE_RATE_UP = [1]
+  ANGLE_RATE_DOWN = [1]
+
+  ANGLE_PRECISION = 2
+
   def _angle_cmd_msg(self, angle, enabled=1):
     values = {"LKAS_Output": angle, "LKAS_Request": enabled}
     return self.packer.make_can_msg_panda("ES_LKAS_ANGLE", 0, values)
@@ -129,16 +137,24 @@ class TestSubaruAngleSafetyBase(TestSubaruSafetyBase, common.AngleSteeringSafety
     return self.packer.make_can_msg_panda("Steering_Torque", 0, values)
 
 
-class TestSubaruForester2022Safety(TestSubaruAngleSafetyBase):
-  ANGLE_RATE_BP = [0]
-  ANGLE_RATE_UP = [1]
-  ANGLE_RATE_DOWN = [1]
-
-  ANGLE_PRECISION = 2
-
+class TestESStatusBase(TestSubaruAngleSafetyBase):
   def _pcm_status_msg(self, enable):
     values = {"Cruise_Activated": enable}
-    return self.packer.make_can_msg_panda("ES_Status", 2, values)
+    return self.packer.make_can_msg_panda("ES_Status", self.ALT_CAM_BUS, values)
+
+
+class TestSubaruForester2022Safety(TestESStatusBase):
+  pass
+
+
+class TestSubaruOutback2023Safety(TestESStatusBase):
+  ALT_MAIN_BUS = SUBARU_ALT_BUS
+  ALT_CAM_BUS = SUBARU_ALT_BUS
+
+  TX_MSGS = lkas_tx_msgs(SUBARU_ALT_BUS, MSG_SUBARU_ES_LKAS_ANGLE)
+
+  FLAGS = Panda.FLAG_SUBARU_GEN2 | Panda.FLAG_SUBARU_LKAS_ANGLE | Panda.FLAG_SUBARU_ES_STATUS
+
   
 if __name__ == "__main__":
   unittest.main()
