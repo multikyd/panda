@@ -264,8 +264,11 @@ static int subaru_fwd_hook(int bus_num, int addr) {
 
 static const addr_checks* subaru_init(uint16_t param) {
   subaru_gen2 = GET_FLAG(param, SUBARU_PARAM_GEN2);
+
+#ifdef ALLOW_DEBUG
   lkas_angle = GET_FLAG(param, SUBARU_PARAM_LKAS_ANGLE);
   es_status = GET_FLAG(param, SUBARU_PARAM_ES_STATUS);
+#endif
 
   if (subaru_gen2) {
     subaru_rx_checks = (addr_checks){subaru_gen2_addr_checks, SUBARU_GEN2_ADDR_CHECK_LEN};
