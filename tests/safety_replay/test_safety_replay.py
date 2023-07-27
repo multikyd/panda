@@ -20,7 +20,7 @@ logs = [
   ReplayRoute("0744286ead2fbb96|2023-05-01--16-27-01--35--rlog.bz2", Panda.SAFETY_SUBARU),    # SUBARU.IMPREZA
   ReplayRoute("bad6ae3584ece5b5|2023-04-29--11-23-48--7--rlog.bz2", Panda.SAFETY_SUBARU,      # SUBARU.OUTBACK
               Panda.FLAG_SUBARU_GEN2, ALT_EXP.DISABLE_DISENGAGE_ON_GAS),
-  ReplayRoute("7fd1e4f3a33c1673|2022-12-04--15-09-53--4--rlog.bz2", Panda.SAFETY_SUBARU,      # SUBARU.FORESTER_2022
+  ReplayRoute("b0cea2db2dd5474e|2023-07-21--12-18-50--4--rlog.bz2", Panda.SAFETY_SUBARU,      # SUBARU.FORESTER_2022
               Panda.FLAG_SUBARU_LKAS_ANGLE, Panda.FLAG_SUBARU_ES_STATUS),
   ReplayRoute("f3b34c0d2632aa83|2023-07-23--20-43-25--7--rlog.bz2", Panda.SAFETY_SUBARU,      # SUBARU.OUTBACK_2023
               Panda.FLAG_SUBARU_GEN2 | Panda.FLAG_SUBARU_LKAS_ANGLE | Panda.FLAG_SUBARU_ES_STATUS,
