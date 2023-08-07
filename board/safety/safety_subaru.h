@@ -140,7 +140,8 @@ static int subaru_rx_hook(CANPacket_t *to_push) {
 
     int addr = GET_ADDR(to_push);
     if ((addr == MSG_SUBARU_Steering_Torque) && (bus == SUBARU_MAIN_BUS)) {
-      int torque_driver_new = (GET_BYTES(to_push, 2, 4) & 0x7FFU);
+      int torque_driver_new;
+      torque_driver_new = ((GET_BYTES(to_push, 0, 4) >> 16) & 0x7FFU);
       torque_driver_new = -1 * to_signed(torque_driver_new, 11);
       update_sample(&torque_driver, torque_driver_new);
 
