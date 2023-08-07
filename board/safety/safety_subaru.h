@@ -16,12 +16,12 @@ const SteeringLimits SUBARU_GEN2_STEERING_LIMITS  = SUBARU_STEERING_LIMITS_GENER
 const SteeringLimits SUBARU_ANGLE_STEERING_LIMITS = {
   .angle_deg_to_can = 100,
   .angle_rate_up_lookup = {
-    {0,5,10},
-    {1,1,1}
+    {0., 5., 15.},
+    {5., .8, .15}
   },
   .angle_rate_down_lookup = {
-    {0,5,10},
-    {1,1,1}
+    {0., 5., 15.},
+    {5., 3.5, .4}
   },
 };
 
