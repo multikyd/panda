@@ -56,7 +56,7 @@ class TestSubaruSafetyBase(common.PandaSafetyTest, MeasurementSafetyTest):
   ALT_MAIN_BUS = SUBARU_MAIN_BUS
   ALT_CAM_BUS = SUBARU_CAM_BUS
 
-  DEG_TO_CAN = -46.08
+  DEG_TO_CAN = -100
 
   def setUp(self):
     self.packer = CANPackerPanda("subaru_global_2017_generated")

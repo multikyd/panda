@@ -145,7 +145,8 @@ static int subaru_rx_hook(CANPacket_t *to_push) {
       update_sample(&torque_driver, torque_driver_new);
 
       int angle_meas_new = (GET_BYTES(to_push, 4, 2) & 0xFFFFU);
-      angle_meas_new = ROUND(to_signed(angle_meas_new, 16));
+       // convert Steering_Torque -> Steering_Angle to centidegrees, to match the ES_LKAS_ANGLE angle request
+      angle_meas_new = ROUND(to_signed(angle_meas_new, 16) * 2.17);
       update_sample(&angle_meas, angle_meas_new);
     }
 
@@ -210,7 +211,7 @@ static int subaru_tx_hook(CANPacket_t *to_send) {
   }
 
   // steer cmd checks
-  if ((addr == MSG_SUBARU_ES_LKAS)) {
+  if (addr == MSG_SUBARU_ES_LKAS) {
     int desired_torque = ((GET_BYTES(to_send, 0, 4) >> 16) & 0x1FFFU);
     desired_torque = -1 * to_signed(desired_torque, 13);
 
@@ -218,17 +219,17 @@ static int subaru_tx_hook(CANPacket_t *to_send) {
     violation |= steer_torque_cmd_checks(desired_torque, -1, limits);
   }
 
-  if (violation){
-    tx = 0;
-  }
-
-  if ((addr == MSG_SUBARU_ES_LKAS_ANGLE)) {
-    int desired_angle = ((GET_BYTES(to_send, 4, 4) >> 8) & 0x3FFFFU);
-    desired_angle = -1 * to_signed(desired_angle, 17) * 0.0217;
-
+  if (addr == MSG_SUBARU_ES_LKAS_ANGLE) {
+    int desired_angle = (GET_BYTES(to_send, 5, 3) & 0x1FFFFU);
+    desired_angle = to_signed(desired_angle, 17);
     bool lkas_request = GET_BIT(to_send, 12U);
+
     const SteeringLimits limits = SUBARU_ANGLE_STEERING_LIMITS;
     violation |= steer_angle_cmd_checks(desired_angle, lkas_request, limits);
+  }
+
+  if (violation){
+    tx = 0;
   }
 
   return tx;
