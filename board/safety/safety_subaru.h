@@ -231,7 +231,6 @@ static int subaru_tx_hook(CANPacket_t *to_send) {
   if (violation){
     tx = 0;
   }
-
   return tx;
 }
 
