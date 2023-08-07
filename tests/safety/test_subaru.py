@@ -153,6 +153,6 @@ class TestSubaruOutback2023Safety(TestSubaruAngleSafetyBase):
 
   FLAGS = Panda.FLAG_SUBARU_GEN2 | Panda.FLAG_SUBARU_LKAS_ANGLE | Panda.FLAG_SUBARU_ES_STATUS
 
-  
+
 if __name__ == "__main__":
   unittest.main()
