@@ -582,9 +582,6 @@ class AngleSteeringSafetyTest(MeasurementSafetyTest):
   ANGLE_RATE_UP: List[float]  # windup limit
   ANGLE_RATE_DOWN: List[float]  # unwind limit
 
-  VEHICLE_SPEED_PRECISION = 1
-  ANGLE_PRECISION = 1
-
   @classmethod
   def setUpClass(cls):
     if cls.__name__ == "AngleSteeringSafetyTest":

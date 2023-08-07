@@ -36,7 +36,7 @@ def lkas_tx_msgs(alt_bus, lkas_msg=MSG_SUBARU_ES_LKAS):
 def fwd_blacklisted_addr(lkas_msg=MSG_SUBARU_ES_LKAS):
   return {SUBARU_CAM_BUS: [lkas_msg, MSG_SUBARU_ES_DashStatus, MSG_SUBARU_ES_LKAS_State, MSG_SUBARU_ES_Infotainment]}
 
-class TestSubaruSafetyBase(common.PandaSafetyTest, common.DriverTorqueSteeringSafetyTest, MeasurementSafetyTest):
+class TestSubaruSafetyBase(common.PandaSafetyTest, MeasurementSafetyTest):
   FLAGS = 0
   STANDSTILL_THRESHOLD = 0 # kph
   RELAY_MALFUNCTION_ADDR = MSG_SUBARU_ES_LKAS
@@ -55,8 +55,6 @@ class TestSubaruSafetyBase(common.PandaSafetyTest, common.DriverTorqueSteeringSa
 
   ALT_MAIN_BUS = SUBARU_MAIN_BUS
   ALT_CAM_BUS = SUBARU_CAM_BUS
-
-  VEHICLE_SPEED_PRECISION = 3
 
   DEG_TO_CAN = -46.08
 
@@ -102,10 +100,10 @@ class TestSubaruTorqueSafetyBase(TestSubaruSafetyBase, common.DriverTorqueSteeri
     return self.packer.make_can_msg_panda("ES_LKAS", 0, values)
 
 
-
 class TestSubaruGen1Safety(TestSubaruTorqueSafetyBase):
   FLAGS = 0
   TX_MSGS = lkas_tx_msgs(SUBARU_MAIN_BUS)
+
 
 class TestSubaruGen2Safety(TestSubaruTorqueSafetyBase):
   ALT_MAIN_BUS = SUBARU_ALT_BUS
@@ -124,15 +122,11 @@ class TestSubaruAngleSafetyBase(TestSubaruSafetyBase, common.AngleSteeringSafety
   RELAY_MALFUNCTION_ADDR = MSG_SUBARU_ES_LKAS_ANGLE
   FWD_BLACKLISTED_ADDRS = fwd_blacklisted_addr(MSG_SUBARU_ES_LKAS_ANGLE)
 
-  DEG_TO_CAN = 1
-
   FLAGS = Panda.FLAG_SUBARU_LKAS_ANGLE | Panda.FLAG_SUBARU_ES_STATUS
 
   ANGLE_RATE_BP = [0]
   ANGLE_RATE_UP = [1]
   ANGLE_RATE_DOWN = [1]
-
-  ANGLE_PRECISION = 2
 
   def _angle_cmd_msg(self, angle, enabled=1):
     values = {"LKAS_Output": angle, "LKAS_Request": enabled}
@@ -142,18 +136,16 @@ class TestSubaruAngleSafetyBase(TestSubaruSafetyBase, common.AngleSteeringSafety
     values = {"Steering_Angle": angle}
     return self.packer.make_can_msg_panda("Steering_Torque", 0, values)
 
-
-class TestESStatusBase(TestSubaruAngleSafetyBase):
   def _pcm_status_msg(self, enable):
     values = {"Cruise_Activated": enable}
     return self.packer.make_can_msg_panda("ES_Status", self.ALT_CAM_BUS, values)
 
 
-class TestSubaruForester2022Safety(TestESStatusBase):
+class TestSubaruForester2022Safety(TestSubaruAngleSafetyBase):
   pass
 
 
-class TestSubaruOutback2023Safety(TestESStatusBase):
+class TestSubaruOutback2023Safety(TestSubaruAngleSafetyBase):
   ALT_MAIN_BUS = SUBARU_ALT_BUS
   ALT_CAM_BUS = SUBARU_ALT_BUS
 

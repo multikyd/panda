@@ -13,11 +13,8 @@
 const SteeringLimits SUBARU_STEERING_LIMITS       = SUBARU_STEERING_LIMITS_GENERATOR(2047, 50, 70);
 const SteeringLimits SUBARU_GEN2_STEERING_LIMITS  = SUBARU_STEERING_LIMITS_GENERATOR(1000, 40, 40);
 
-#define STEER_ANGLE_MEAS_FACTOR -0.0217
-#define STEER_ANGLE_CMD_FACTOR  -100
-
 const SteeringLimits SUBARU_ANGLE_STEERING_LIMITS = {
-  .angle_deg_to_can = 1,
+  .angle_deg_to_can = 100,
   .angle_rate_up_lookup = {
     {0,5,10},
     {1,1,1}
@@ -103,12 +100,9 @@ AddrCheckStruct subaru_es_status_addr_checks[] = {
 };
 #define SUBARU_ES_STATUS_ADDR_CHECK_LEN (sizeof(subaru_es_status_addr_checks) / sizeof(subaru_es_status_addr_checks[0]))
 
-#define STEER_ANGLE_MEAS_FACTOR -0.0217
-#define WHEEL_SPEED_FACTOR 0.057
-
 const uint16_t SUBARU_PARAM_GEN2 = 1;
 const uint16_t SUBARU_PARAM_LKAS_ANGLE = 2;
-const uint16_t SUBARU_PARAM_ES_STATUS = 4; // Use ES_Status for cruise_activated
+const uint16_t SUBARU_PARAM_ES_STATUS = 4;
 
 bool subaru_gen2 = false;
 bool lkas_angle = false;
@@ -230,14 +224,11 @@ static int subaru_tx_hook(CANPacket_t *to_send) {
 
   if ((addr == MSG_SUBARU_ES_LKAS_ANGLE)) {
     int desired_angle = ((GET_BYTES(to_send, 4, 4) >> 8) & 0x3FFFFU);
-    desired_angle = -1 * to_signed(desired_angle, 17) / 100;
+    desired_angle = -1 * to_signed(desired_angle, 17) * 0.0217;
 
     bool lkas_request = GET_BIT(to_send, 12U);
-
     const SteeringLimits limits = SUBARU_ANGLE_STEERING_LIMITS;
-    if (steer_angle_cmd_checks(desired_angle, lkas_request, limits)) {
-      tx = 0;
-    }
+    violation |= steer_angle_cmd_checks(desired_angle, lkas_request, limits);
   }
 
   return tx;
