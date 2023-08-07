@@ -151,7 +151,7 @@ static int subaru_rx_hook(CANPacket_t *to_push) {
       update_sample(&torque_driver, torque_driver_new);
 
       int angle_meas_new = (GET_BYTES(to_push, 4, 2) & 0xFFFFU);
-      angle_meas_new = ROUND(to_signed(angle_meas_new, 16) * STEER_ANGLE_MEAS_FACTOR);
+      angle_meas_new = ROUND(to_signed(angle_meas_new, 16));
       update_sample(&angle_meas, angle_meas_new);
     }
 
@@ -175,12 +175,12 @@ static int subaru_rx_hook(CANPacket_t *to_push) {
 
       vehicle_moving = (fr > 0U) || (rr > 0U) || (rl > 0U) || (fl > 0U);
 
-      float speed = (fr + rr + rl + fl) / 4U * WHEEL_SPEED_FACTOR;
+      float speed = (fr + rr + rl + fl) / 4U * 0.057;
       update_sample(&vehicle_speed, ROUND(speed * VEHICLE_SPEED_FACTOR));
     }
 
     if ((addr == MSG_SUBARU_Brake_Status) && (bus == alt_main_bus)) {
-      brake_pressed = ((GET_BYTE(to_push, 7) >> 6) & 1U);
+      brake_pressed = GET_BIT(to_push, 62U) != 0U;
     }
 
     if ((addr == MSG_SUBARU_Throttle) && (bus == SUBARU_MAIN_BUS)) {
@@ -196,6 +196,7 @@ static int subaru_tx_hook(CANPacket_t *to_send) {
 
   int tx = 1;
   int addr = GET_ADDR(to_send);
+  bool violation = false;
 
   if(lkas_angle) {
     if(subaru_gen2){
@@ -220,9 +221,11 @@ static int subaru_tx_hook(CANPacket_t *to_send) {
     desired_torque = -1 * to_signed(desired_torque, 13);
 
     const SteeringLimits limits = subaru_gen2 ? SUBARU_GEN2_STEERING_LIMITS : SUBARU_STEERING_LIMITS;
-    if (steer_torque_cmd_checks(desired_torque, -1, limits)) {
-      tx = 0;
-    }
+    violation |= steer_torque_cmd_checks(desired_torque, -1, limits);
+  }
+
+  if (violation){
+    tx = 0;
   }
 
   if ((addr == MSG_SUBARU_ES_LKAS_ANGLE)) {
