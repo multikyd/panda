@@ -190,7 +190,6 @@ class TorqueSteeringSafetyTestBase(PandaSafetyTestBase, abc.ABC):
 
   @classmethod
   def setUpClass(cls):
-    super().setUpClass()
     if cls.__name__ == "TorqueSteeringSafetyTestBase":
       cls.safety = None
       raise unittest.SkipTest
@@ -893,7 +892,7 @@ class PandaSafetyTest(PandaSafetyTestBase):
               continue
             if attr.startswith('TestToyota') and current_test.startswith('TestToyota'):
               continue
-            if {attr, current_test}.issubset({'TestSubaruGen1Safety', 'TestSubaruGen2Safety'}):
+            if {attr, current_test}.issubset({'TestSubaruGen1Safety', 'TestSubaruGen2Safety', 'TestSubaruForester2022Safety', 'TestSubaruOutback2023Safety'}):
               continue
             if {attr, current_test}.issubset({'TestVolkswagenPqSafety', 'TestVolkswagenPqStockSafety', 'TestVolkswagenPqLongSafety'}):
               continue
@@ -926,9 +925,6 @@ class PandaSafetyTest(PandaSafetyTestBase):
             if attr.startswith('TestHonda'):
               # exceptions for common msgs across different hondas
               tx = list(filter(lambda m: m[0] not in [0x1FA, 0x30C, 0x33D], tx))
-            if attr in ['TestSubaruGen1Safety', 'TestSubaruGen2Safety', 'TestSubaruForester2022Safety', 'TestSubaruOutback2023Safety']:
-              # exceptions for common msgs across different subarus
-              tx = list(filter(lambda m: m[0] not in [0x122, 0x124, 0x221, 0x321, 0x322, 0x323], tx))
             all_tx.append(list([m[0], m[1], attr] for m in tx))
 
     # make sure we got all the msgs
