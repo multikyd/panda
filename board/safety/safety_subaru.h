@@ -228,6 +228,14 @@ static int subaru_tx_hook(CANPacket_t *to_send) {
     const SteeringLimits limits = SUBARU_ANGLE_STEERING_LIMITS;
     violation |= steer_angle_cmd_checks(desired_angle, lkas_request, limits);
   }
+  
+  // Only allow ES_Distance when Cruise_Cancel is true, and Cruise_Throttle is "inactive" (1818)
+  if (addr == MSG_SUBARU_ES_Distance){
+    int cruise_throttle = (GET_BYTES(to_send, 2, 2) & 0xFFFU);
+    bool cruise_cancel = GET_BIT(to_send, 56U) != 0U;
+    violation |= (cruise_throttle != 1818);
+    violation |= (!cruise_cancel);
+  }
 
   if (violation){
     tx = 0;
