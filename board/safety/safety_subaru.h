@@ -210,7 +210,7 @@ static int subaru_tx_hook(CANPacket_t *to_send) {
   int tx = 1;
   int addr = GET_ADDR(to_send);
   bool violation = false;
-  
+
   if (subaru_gen2) {
     tx = msg_allowed(to_send, SUBARU_GEN2_TX_MSGS, SUBARU_GEN2_TX_MSGS_LEN);
   } else if (subaru_longitudinal) {
