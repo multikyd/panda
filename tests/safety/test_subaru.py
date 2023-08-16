@@ -149,7 +149,7 @@ class TestSubaruTorqueSafetyBase(TestSubaruSafetyBase, common.DriverTorqueSteeri
 
   def _torque_cmd_msg(self, torque, steer_req=1):
     values = {"LKAS_Output": torque}
-    return self.packer.make_can_msg_panda("ES_LKAS", 0, values)
+    return self.packer.make_can_msg_panda("ES_LKAS", SUBARU_MAIN_BUS, values)
 
 class TestSubaruAngleSafetyBase(TestSubaruSafetyBase, common.AngleSteeringSafetyTest):
   TX_MSGS = lkas_tx_msgs(SUBARU_MAIN_BUS, MSG_SUBARU_ES_LKAS_ANGLE)
