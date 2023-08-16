@@ -239,8 +239,6 @@ static int subaru_tx_hook(CANPacket_t *to_send) {
     violation |= steer_angle_cmd_checks(desired_angle, lkas_request, limits);
   }
   
-  // Only allow ES_Distance when Cruise_Cancel is true, and Cruise_Throttle is "inactive" (1818)
-  if (addr == MSG_SUBARU_ES_Distance){
   // check es_brake brake_pressure limits
   if (addr == MSG_SUBARU_ES_Brake) {
     int es_brake_pressure = GET_BYTES(to_send, 2, 2);
@@ -308,8 +306,8 @@ static const addr_checks* subaru_init(uint16_t param) {
 
 #ifdef ALLOW_DEBUG
   subaru_longitudinal = GET_FLAG(param, SUBARU_PARAM_LONGITUDINAL) && !subaru_gen2;
-  lkas_angle = GET_FLAG(param, SUBARU_PARAM_LKAS_ANGLE);
-  es_status = GET_FLAG(param, SUBARU_PARAM_ES_STATUS);
+  lkas_angle = GET_FLAG(param, SUBARU_PARAM_LKAS_ANGLE) && !subaru_gen2;
+  es_status = GET_FLAG(param, SUBARU_PARAM_ES_STATUS) && !subaru_gen2;
 #endif
 
   if (subaru_gen2) {

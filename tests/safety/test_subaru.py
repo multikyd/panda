@@ -131,15 +131,15 @@ class TestSubaruLongitudinalSafetyBase(TestSubaruSafetyBase, common.Longitudinal
 
   def _send_brake_msg(self, brake):
     values = {"Brake_Pressure": brake}
-    return self.packer.make_can_msg_panda("ES_Brake", self.ALT_BUS, values)
+    return self.packer.make_can_msg_panda("ES_Brake", self.ALT_MAIN_BUS, values)
 
   def _send_gas_msg(self, gas):
     values = {"Cruise_Throttle": gas}
-    return self.packer.make_can_msg_panda("ES_Distance", self.ALT_BUS, values)
+    return self.packer.make_can_msg_panda("ES_Distance", self.ALT_MAIN_BUS, values)
 
   def _send_rpm_msg(self, rpm):
     values = {"Cruise_RPM": rpm}
-    return self.packer.make_can_msg_panda("ES_Status", self.ALT_BUS, values)
+    return self.packer.make_can_msg_panda("ES_Status", self.ALT_MAIN_BUS, values)
 
 
 class TestSubaruTorqueSafetyBase(TestSubaruSafetyBase, common.DriverTorqueSteeringSafetyTest):
