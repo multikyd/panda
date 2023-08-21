@@ -195,15 +195,29 @@ class TestSubaruGen2LongitudinalSafety(TestSubaruLongitudinalSafetyBase, TestSub
   FLAGS = Panda.FLAG_SUBARU_LONG | Panda.FLAG_SUBARU_GEN2
   TX_MSGS = lkas_tx_msgs(SUBARU_ALT_BUS) + long_tx_msgs(SUBARU_ALT_BUS) + additional_tx_msgs(SUBARU_ALT_BUS)
 
-  def _es_uds_msg(self, sid: int):
-    return libpanda_py.make_CANPacket(MSG_SUBARU_ES_UDS_Request, 2, b'\x00' + sid.to_bytes(1) + b'\x00' * 6)
+  def _rdbi_msg(self, did: int):
+    return b'\x03\x22' + did.to_bytes(2) + b'\x00\x00\x00\x00'
+
+  def _es_uds_msg(self, msg):
+    return libpanda_py.make_CANPacket(MSG_SUBARU_ES_UDS_Request, 2, msg)
 
   def test_es_uds_message(self):
-    allowed_sids = [0x3e, 0x22, 0x28]
+    tester_present = b'\x02\x3E\x80\x00\x00\x00\x00\x00'
 
+    button_did = 0x1130
+
+    # Tester present is allowed for gen2 long to keep eyesight disabled
+    self.assertTrue(self._tx(self._es_uds_msg(tester_present)))
+
+    # Only button_did is allowed to be read via UDS
+    for did in range(0xFFFF):
+      should_tx = (did == button_did)
+      self.assertEqual(self._tx(self._es_uds_msg(self._rdbi_msg(did))), should_tx)
+    
+    # any other msg is not allowed
     for sid in range(0xFF):
-      should_tx = sid in allowed_sids
-      self.assertEqual(self._tx(self._es_uds_msg(sid)), should_tx)
+      msg = b'\x03' + sid.to_bytes(1) + b'\x00' * 6
+      self.assertFalse(self._tx(self._es_uds_msg(msg)))
 
 
 if __name__ == "__main__":
