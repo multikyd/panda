@@ -241,10 +241,10 @@ static int subaru_tx_hook(CANPacket_t *to_send) {
 
   if (addr == MSG_SUBARU_ES_UDS_Request){
     // tester present ('\x02\x3E\x80\x00\x00\x00\x00\x00') is allowed for gen2 longitudinal to keep eyesight disabled
-    bool is_tester_present = GET_BYTES(to_send, 0, 4) == 0x00803E02 && GET_BYTES(to_send, 4, 4) == 0x0;
+    bool is_tester_present = (GET_BYTES(to_send, 0, 4) == 0x00803E02) && (GET_BYTES(to_send, 4, 4) == 0x0);
 
     // reading ES button data by identifier (b'\x03\x22\x11\x30\x00\x00\x00\x00') is also allowed (DID 0x1130)
-    bool is_button_rdbi = GET_BYTES(to_send, 0, 4) == 0x30112203 && GET_BYTES(to_send, 4, 4) == 0x0;
+    bool is_button_rdbi = (GET_BYTES(to_send, 0, 4) == 0x30112203) && (GET_BYTES(to_send, 4, 4) == 0x0);
 
     violation |= !(is_tester_present || is_button_rdbi);
   }
