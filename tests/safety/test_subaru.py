@@ -213,7 +213,7 @@ class TestSubaruGen2LongitudinalSafety(TestSubaruLongitudinalSafetyBase, TestSub
     for did in range(0xFFFF):
       should_tx = (did == button_did)
       self.assertEqual(self._tx(self._es_uds_msg(self._rdbi_msg(did))), should_tx)
-    
+
     # any other msg is not allowed
     for sid in range(0xFF):
       msg = b'\x03' + sid.to_bytes(1) + b'\x00' * 6
