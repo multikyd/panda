@@ -49,7 +49,7 @@ const LongitudinalLimits SUBARU_LONG_LIMITS = {
 #define SUBARU_ALT_BUS  1
 #define SUBARU_CAM_BUS  2
 
-#define SUBARU_COMMON_TX_MSGS(alt_bus, lkas_msg)    \
+#define SUBARU_COMMON_TX_MSGS(alt_bus, lkas_msg)      \
   {lkas_msg,                     SUBARU_MAIN_BUS, 8}, \
   {MSG_SUBARU_ES_Distance,       alt_bus,         8}, \
   {MSG_SUBARU_ES_DashStatus,     SUBARU_MAIN_BUS, 8}, \
@@ -287,7 +287,7 @@ static const addr_checks* subaru_init(uint16_t param) {
   subaru_gen2 = GET_FLAG(param, SUBARU_PARAM_GEN2);
 
 #ifdef ALLOW_DEBUG
-  subaru_longitudinal = GET_FLAG(param, SUBARU_PARAM_LONGITUDINAL) && !subaru_gen2;
+  subaru_longitudinal = GET_FLAG(param, SUBARU_PARAM_LONGITUDINAL);
 #endif
 
   if (subaru_gen2) {
