@@ -223,16 +223,20 @@ class TestSubaruGen2LongitudinalSafety(TestSubaruLongitudinalSafetyBase, TestSub
   def _rdbi_msg(self, did: int):
     return b'\x03\x22' + did.to_bytes(2) + b'\x00\x00\x00\x00'
 
-  def _es_uds_msg(self, msg):
+  def _es_uds_msg(self, msg: bytes):
     return libpanda_py.make_CANPacket(MSG_SUBARU_ES_UDS_Request, 2, msg)
 
   def test_es_uds_message(self):
     tester_present = b'\x02\x3E\x80\x00\x00\x00\x00\x00'
+    not_tester_present = b"\x03\xAA\xAA\x00\x00\x00\x00\x00"
 
     button_did = 0x1130
 
     # Tester present is allowed for gen2 long to keep eyesight disabled
     self.assertTrue(self._tx(self._es_uds_msg(tester_present)))
+
+    # Non-Tester present is not allowed
+    self.assertFalse(self._tx(self._es_uds_msg(not_tester_present)))
 
     # Only button_did is allowed to be read via UDS
     for did in range(0xFFFF):
